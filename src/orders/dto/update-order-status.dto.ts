@@ -7,4 +7,7 @@ export class UpdateOrderStatusDto {
   @IsEnum(OrderStatus)
   @IsNotEmpty()
   status: OrderStatus;
+
+  @ApiProperty({ description: 'Tracking ID of the order' })
+  trackingId: string;
 } 

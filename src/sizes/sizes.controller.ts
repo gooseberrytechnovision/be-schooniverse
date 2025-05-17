@@ -32,4 +32,11 @@ export class SizesController {
   ): Promise<void> {
     return this.sizesService.removeByStudentAndProduct(studentId, productId);
   }
+  
+  @Post('bulk')
+  findSizesInBulk(
+    @Body() sizesRequest: { [studentId: string]: number[] }
+  ): Promise<{ [studentId: string]: { [productId: string]: string } }> {
+    return this.sizesService.findSizesInBulk(sizesRequest);
+  }
 } 

@@ -35,4 +35,9 @@ export class ProductsController {
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return await this.productsService.remove(id);
   }
+  
+  @Post('by-ids')
+  async findByIds(@Body() body: { productIds: number[] }): Promise<{ [key: string]: Product }> {
+    return await this.productsService.findByIds(body.productIds);
+  }
 } 

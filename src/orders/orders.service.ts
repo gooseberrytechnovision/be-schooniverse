@@ -176,7 +176,7 @@ export class OrdersService {
 
     // Update order status
     order.status = updateOrderStatusDto.status;
-
+    order.trackingId = updateOrderStatusDto.trackingId;
     // Save the updated order
     const updatedOrder = await this.orderRepository.save(order);
 

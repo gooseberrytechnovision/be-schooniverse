@@ -43,6 +43,9 @@ export class Order {
   })
   transactionStatus: TransactionStatus;
 
+  @Column({ name: 'tracking_id' })
+  trackingId: string;
+
   @OneToMany(() => OrderItem, orderItem => orderItem.order)
   items: OrderItem[];
 

@@ -5,6 +5,7 @@ import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Between } from 'typeorm';
+import { In } from 'typeorm';
 
 @Injectable()
 export class ProductsService {
@@ -49,7 +50,23 @@ export class ProductsService {
     await this.productRepository.remove(product);
   }
 
- 
+  async findByIds(productIds: number[]): Promise<{ [key: string]: Product }> {
+    // Return empty object if no IDs provided
+    if (!productIds || productIds.length === 0) {
+      return {};
+    }
 
-  
+    // Find all products matching the IDs
+    const products = await this.productRepository.find({
+      where: { id: In(productIds) },
+    });
+
+    // Transform array to object with ID as key
+    const productMap = {};
+    products.forEach(product => {
+      productMap[product.id] = product;
+    });
+
+    return productMap;
+  }
 } 
