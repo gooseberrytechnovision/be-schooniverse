@@ -11,11 +11,12 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors({
     origin: [
-      'http://localhost:3000', 
-      'https://main.d1bxdzgkafngrg.amplifyapp.com',
+      'http://localhost:3000',
+      'https://main.d1bxdzgkafngrg.amplifyapp.com'
     ],
     methods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
     credentials: true,
+    allowedHeaders: ['DNT', 'User-Agent', 'X-Requested-With', 'If-Modified-Since', 'Cache-Control', 'Content-Type', 'Range', 'Authorization'],
     maxAge: 3600,
   });
 
