@@ -11,10 +11,7 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors({
     origin: [
-      'http://localhost:3000',
-      // 'https://school-mgt-jacinth91s-projects.vercel.app',
-      // 'https://school-mgt-git-main-jacinth91s-projects.vercel.app',
-      // 'https://school-mgt-4a45-jacinth91s-projects.vercel.app',
+      'http://localhost:3000', 
       'https://main.d1bxdzgkafngrg.amplifyapp.com',
     ],
     methods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
