@@ -16,6 +16,7 @@ import { OrderItem } from 'src/orders/entities/order-item.entity';
 @Injectable()
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
+  private readonly TRANSACTION_TIMEOUT = 30000; // 30 seconds
 
   constructor(
     @InjectRepository(Payment) private payRepo: Repository<Payment>,
@@ -26,56 +27,72 @@ export class PaymentService {
   ) {}
 
   async getConfig(orderId: string): Promise<GetPaymentConfigDto> {
-    const order = await this.orderRepo.findOne({
-      where: { id: orderId },
-      relations: ['parent'],
-    });
-    if (!order) throw new NotFoundException(`Order ${orderId} not found`);
+    try {
+      const order = await this.orderRepo.findOne({
+        where: { id: orderId },
+        relations: ['parent'],
+      });
+      if (!order) throw new NotFoundException(`Order ${orderId} not found`);
 
-    if (!order.parent.parentName)
-      throw new NotFoundException(`Parent details not found`);
+      if (!order.parent.parentName)
+        throw new NotFoundException(`Parent details not found`);
 
-    const orderItems = await this.orderItemRepo.findOne({
-      where: { orderId: Number(order.id) },
-      relations: ['student'],
-    });
+      const orderItems = await this.orderItemRepo.findOne({
+        where: { orderId: Number(order.id) },
+        relations: ['student'],
+      });
 
-    if (!orderItems.student || !orderItems.student.usid) {
-      throw new NotFoundException('No student USID found for this parent');
+      if (!orderItems?.student || !orderItems.student.usid) {
+        throw new NotFoundException('No student USID found for this parent');
+      }
+
+      return {
+        env: process.env.GQ_ENV,
+        auth: {
+          client_id: process.env.GQ_CLIENT_ID,
+          client_secret: process.env.GQ_CLIENT_SECRET,
+          api_key: process.env.GQ_API_KEY,
+        },
+        student_id: orderItems.student.usid,
+        application_code: orderId,
+        student_details: {
+          student_first_name: orderItems.student.studentName,
+        },
+        customer_details: {
+          customer_first_name: order.parent.parentName,
+          customer_email: `${orderItems.student.usid}@grayquest.com`,
+        },
+        fee_headers: {
+          current_payable: order.totalPrice,
+        },
+        pp_config: { slug: process.env.GQ_SDK_SLUG },
+      };
+    } catch (error) {
+      this.logger.error(`Error in getConfig: ${error.message}`, error.stack);
+      throw error;
     }
-
-    return {
-      env: process.env.GQ_ENV,
-      auth: {
-        client_id: process.env.GQ_CLIENT_ID,
-        client_secret: process.env.GQ_CLIENT_SECRET,
-        api_key: process.env.GQ_API_KEY,
-      },
-      student_id: orderItems.student.usid,
-      application_code: orderId,
-      student_details: {
-        student_first_name: orderItems.student.studentName,
-      },
-      customer_details: {
-        customer_first_name: order.parent.parentName,
-        customer_email: `${orderItems.student.usid}@grayquest.com`,
-      },
-      fee_headers: {
-        current_payable: order.totalPrice,
-      },
-      pp_config: { slug: process.env.GQ_SDK_SLUG },
-    };
   }
 
   async markPaid(evt: PaymentEventDto) {
     const qr = this.ds.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
+    let timeoutId;
+
     try {
-      const pay = (await qr.manager.findOne(Payment, {
+      await qr.connect();
+      await qr.startTransaction();
+
+      // Set transaction timeout
+      timeoutId = setTimeout(() => {
+        qr.rollbackTransaction();
+        throw new Error('Transaction timeout');
+      }, this.TRANSACTION_TIMEOUT);
+
+      const pay = await qr.manager.findOne(Payment, {
         where: { order: { id: evt.order_code } },
         relations: ['order'],
-      })) as Payment;
+        lock: { mode: 'pessimistic_write' }, // Add row-level locking
+      });
+
       if (!pay) throw new NotFoundException(`Payment ${evt.order_code}`);
 
       pay.status = PaymentStatus.PAID;
@@ -94,6 +111,7 @@ export class PaymentService {
       if (cart) {
         await qr.manager.delete(CartItem, { cartId: cart.id });
       }
+
       await qr.commitTransaction();
       this.sendSms(evt.cartItems, true);
       return { success: true };
@@ -102,19 +120,31 @@ export class PaymentService {
       this.logger.error('markPaid failed', err.stack);
       throw err;
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       await qr.release();
     }
   }
 
   async markFailed(evt: PaymentEventDto) {
     const qr = this.ds.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
+    let timeoutId;
+
     try {
+      await qr.connect();
+      await qr.startTransaction();
+
+      // Set transaction timeout
+      timeoutId = setTimeout(() => {
+        qr.rollbackTransaction();
+        throw new Error('Transaction timeout');
+      }, this.TRANSACTION_TIMEOUT);
+
       const pay = await qr.manager.findOne(Payment, {
         where: { order: { id: evt.order_code } },
         relations: ['order'],
+        lock: { mode: 'pessimistic_write' }, // Add row-level locking
       });
+
       if (!pay) throw new NotFoundException(`Payment ${evt.order_code}`);
 
       pay.status = PaymentStatus.FAILED;
@@ -132,19 +162,31 @@ export class PaymentService {
       this.logger.error('markFailed failed', err.stack);
       throw err;
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       await qr.release();
     }
   }
 
   async markClosed(evt: PaymentClosedDto) {
     const qr = this.ds.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
+    let timeoutId;
+
     try {
+      await qr.connect();
+      await qr.startTransaction();
+
+      // Set transaction timeout
+      timeoutId = setTimeout(() => {
+        qr.rollbackTransaction();
+        throw new Error('Transaction timeout');
+      }, this.TRANSACTION_TIMEOUT);
+
       const pay = await qr.manager.findOne(Payment, {
         where: { order: { id: evt.order_code } },
         relations: ['order'],
+        lock: { mode: 'pessimistic_write' }, // Add row-level locking
       });
+
       if (!pay) throw new NotFoundException(`Payment ${evt.order_code}`);
 
       pay.status = PaymentStatus.FAILED;
@@ -163,6 +205,7 @@ export class PaymentService {
       this.logger.error('markClosed failed', err.stack);
       throw err;
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       await qr.release();
     }
   }
