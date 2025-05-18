@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PaymentClosedDto {
@@ -11,4 +11,8 @@ export class PaymentClosedDto {
   @IsString()
   @IsNotEmpty()
   event: string;
+
+  @ApiProperty({ description: 'Cart items' })
+  @IsOptional()
+  cartItems?: any[];
 }

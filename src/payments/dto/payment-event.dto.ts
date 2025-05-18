@@ -24,4 +24,8 @@ export class PaymentEventDto {
   @ApiPropertyOptional({ description: 'Error details if payment failed' })
   @ValidateIf(o => o.error != null)
   error?: { message: string };
+
+  @ApiPropertyOptional({ description: 'Cart items' })
+  @IsOptional()
+  cartItems?: any[];
 } 

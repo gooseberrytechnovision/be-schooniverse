@@ -94,8 +94,8 @@ export class PaymentService {
       if (cart) {
         await qr.manager.delete(CartItem, { cartId: cart.id });
       }
-
       await qr.commitTransaction();
+      this.sendSms(evt.cartItems, true);
       return { success: true };
     } catch (err) {
       await qr.rollbackTransaction();
@@ -125,6 +125,7 @@ export class PaymentService {
       await qr.manager.save(pay.order);
 
       await qr.commitTransaction();
+      this.sendSms(evt.cartItems, false);
       return { success: false };
     } catch (err) {
       await qr.rollbackTransaction();
@@ -155,6 +156,7 @@ export class PaymentService {
       await qr.manager.save(pay.order);
 
       await qr.commitTransaction();
+      this.sendSms(evt.cartItems, false);
       return { success: true };
     } catch (err) {
       await qr.rollbackTransaction();
@@ -163,5 +165,30 @@ export class PaymentService {
     } finally {
       await qr.release();
     }
+  }
+
+  async sendSms(cartItems, isSuccess: boolean) {
+    cartItems?.forEach(async (item) => {
+      console.log(item,'item****');
+      let phoneNumber = '9840218183';
+      let smsText = `
+      Dear Parent,
+      Thank you for your order.
+
+      Student Name: ${item.student?.studentName}
+      USID: ${item.student?.id}
+      Company: Thathva Industries
+
+      ${isSuccess ? 'Your uniform order has been placed successfully and will be delivered as per the chosen delivery method.' 
+        : 'has been unsuccessful/cancelled. Please check your payment details or try placing the order again. '}
+
+      With Regards,
+      Team Thathva`;
+      const smsUrl = `http://sms.teleosms.com/api/mt/SendSMS?APIKey=${process.env.SMS_API_KEY}&senderid=GDMSCH&channel=Trans&DCS=0&flashsms=0&number=91${phoneNumber}&text=${smsText}&route=2`;
+      
+      await this.http.axiosRef.get(smsUrl).then((res)=>{
+        console.log(smsUrl,res.data,'res***');
+      });
+    });
   }
 }
