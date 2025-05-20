@@ -5,6 +5,7 @@ dotenv.config();
 
 export const databaseConfig: TypeOrmModuleOptions = {
   type: process.env.DB_TYPE as any,
+  url: process.env.DATABASE_URL,
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10),
   username: process.env.DB_USERNAME,
@@ -13,18 +14,12 @@ export const databaseConfig: TypeOrmModuleOptions = {
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: false, // Disable automatic schema synchronization
   logging: true,
-  connectTimeout: 30000, // 30 seconds connection timeout
-  extra: {
-    max: 20, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-    query_timeout: 30000, // 30 seconds
-    statement_timeout: 30000 // 30 seconds
+  ssl: {
+    rejectUnauthorized: false
   },
-  pool: {
-    max: 20,
-    min: 5,
-    maxWaitingRequests: 50,
-    requestTimeout: 30000,
-    idleTimeout: 10000
+  extra: {
+    ssl: {
+      rejectUnauthorized: false
+    }
   }
 }; 

@@ -49,7 +49,7 @@ export class AuthService {
       await this.parentRepository.save(parent);
 
       let otpText = `Dear Parent, ${otp} is the One Time Password to access The Gaudium Parent App. Do not share this OTP with anyone for security reasons. Regards, Team Gaudium`;
-      console.log(otp,'otp***');
+
       // Send OTP via SMS using parent's phone number
       const smsUrl = `http://sms.teleosms.com/api/mt/SendSMS?APIKey=${process.env.SMS_API_KEY}&senderid=GDMSCH&channel=Trans&DCS=0&flashsms=0&number=91${parent.phoneNumber}&text=${otpText}&route=2`;
       

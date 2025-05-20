@@ -11,8 +11,9 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors({
     origin: [
-      'http://localhost:3000',
-      'https://main.d1bxdzgkafngrg.amplifyapp.com'
+      'https://main.d1bxdzgkafngrg.amplifyapp.com',
+      'https://www.thathvauniforms.com',
+      'https://thathvauniforms.com',
     ],
     methods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
     credentials: true,
