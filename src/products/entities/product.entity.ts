@@ -12,6 +12,9 @@ export class Product {
   @Column({ type: 'varchar', length: 255, name: 'image'})
   imageUrl: string;
 
+  @Column({ type: 'varchar', length: 255, name: 'size_chart'})
+  sizeChart: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 ,name: 'unit_price'})
   price: number;
 

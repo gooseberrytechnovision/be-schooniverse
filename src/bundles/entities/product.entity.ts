@@ -24,6 +24,9 @@ export class Product {
   })
   bundleProducts: BundleProduct[];
 
+  @Column({ type: 'varchar', length: 255, name: 'size_chart'})
+  sizeChart: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

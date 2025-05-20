@@ -15,6 +15,9 @@ export class BundleProductDto {
 
   @ApiProperty({ description: 'Whether the product is optional' })
   optional: boolean;
+
+  @ApiProperty({ description: 'Size chart of the product' })
+  size_chart: string;
 }
 
 export class BundleResponseDto {

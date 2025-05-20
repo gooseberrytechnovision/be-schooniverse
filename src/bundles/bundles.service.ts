@@ -250,6 +250,7 @@ export class BundlesService {
         quantity: parseInt(item.quantity),
         optional: item.optional,
         size: item.product_size,
+        size_chart: item.size_chart,
       })),
     };
   }
@@ -303,6 +304,7 @@ export class BundlesService {
         'p.id as product_id',
         'p.name as product_name',
         'p.unitPrice as unit_price',
+        'p.size_chart as size_chart',
         'bp.quantity as quantity',
         'bp.optional as optional',
         'b.totalPrice as bundle_total',
@@ -319,7 +321,6 @@ export class BundlesService {
         `No bundles found for student with USID ${usid} and class ${displayClassName}`,
       );
     }
-
     // Extract all product IDs from the bundles
     const productIds = [...new Set(bundles.map(item => item.product_id))];
 
