@@ -12,6 +12,9 @@ import { GetPaymentConfigDto } from './dto/get-payment-config.dto';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { OrderItem } from 'src/orders/entities/order-item.entity';
+import { Product } from '../products/entities/product.entity';
+import { Size } from '../sizes/entities/size.entity';
+import { Parent } from '../parents/entities/parent.entity';
 
 @Injectable()
 export class PaymentService {
@@ -21,6 +24,9 @@ export class PaymentService {
     @InjectRepository(Payment) private payRepo: Repository<Payment>,
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(OrderItem) private orderItemRepo: Repository<OrderItem>,
+    @InjectRepository(Product) private productRepo: Repository<Product>,
+    @InjectRepository(Size) private sizeRepo: Repository<Size>,
+    @InjectRepository(Parent) private parentRepo: Repository<Parent>,
     private ds: DataSource,
     private http: HttpService,
   ) {}
@@ -65,6 +71,75 @@ export class PaymentService {
       },
       pp_config: { slug: process.env.GQ_SDK_SLUG },
     };
+  }
+
+  async getPaymentByOrderId(orderId: string): Promise<any> {
+    const payment = await this.payRepo.findOne({
+      where: { order: { id: orderId } },
+      relations: ['order', 'order.parent'],
+    });
+    
+    if (!payment) {
+      throw new NotFoundException(`Payment for order ${orderId} not found`);
+    }
+    
+    // Process raw data to include product names and sizes
+    if (payment.raw && payment.raw.cartItems) {
+      const processedCartItems = await Promise.all(
+        payment.raw.cartItems.map(async (cartItem) => {
+          if (cartItem.bundle && cartItem.bundle.bundleProducts) {
+            const processedBundleProducts = await Promise.all(
+              cartItem.bundle.bundleProducts.map(async (bundleProduct) => {
+                // Fetch product details
+                const product = await this.productRepo.findOne({
+                  where: { id: bundleProduct.productId }
+                });
+                
+                // Fetch size details
+                const size = await this.sizeRepo.findOne({
+                  where: { 
+                    productId: bundleProduct.productId,
+                    studentId: cartItem.studentId 
+                  }
+                });
+                
+                return {
+                  ...bundleProduct,
+                  product: product ? {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                  } : null,
+                  size: size ? {
+                    id: size.id,
+                    size: size.size
+                  } : null
+                };
+              })
+            );
+            
+            return {
+              ...cartItem,
+              bundle: {
+                ...cartItem.bundle,
+                bundleProducts: processedBundleProducts
+              }
+            };
+          }
+          return cartItem;
+        })
+      );
+      
+      return {
+        ...payment,
+        raw: {
+          ...payment.raw,
+          cartItems: processedCartItems
+        }
+      };
+    }
+    
+    return payment;
   }
 
   async markPaid(evt: PaymentEventDto) {
@@ -156,7 +231,6 @@ export class PaymentService {
       await qr.manager.save(pay.order);
 
       await qr.commitTransaction();
-      this.sendSms(evt.cartItems, false);
       return { success: true };
     } catch (err) {
       await qr.rollbackTransaction();
@@ -170,21 +244,45 @@ export class PaymentService {
   async sendSms(cartItems, isSuccess: boolean) {
     cartItems?.forEach(async (item) => {
       console.log(item,'item****');
-      let phoneNumber = '9840218183';
-      let smsText = `
-      Dear Parent,
-      Thank you for your order.
-
-      Student Name: ${item.student?.studentName}
-      USID: ${item.student?.id}
-      Company: Thathva Industries
-
-      ${isSuccess ? 'Your uniform order has been placed successfully and will be delivered as per the chosen delivery method.' 
-        : 'has been unsuccessful/cancelled. Please check your payment details or try placing the order again. '}
-
-      With Regards,
-      Team Thathva`;
-      const smsUrl = `http://sms.teleosms.com/api/mt/SendSMS?APIKey=${process.env.SMS_API_KEY}&senderid=GDMSCH&channel=Trans&DCS=0&flashsms=0&number=91${phoneNumber}&text=${smsText}&route=2`;
+      let phoneNumber;
+      
+      if (item.student?.usid) {
+        // Using a raw query with ANY operator to search in the students array
+        const parent = await this.parentRepo
+          .createQueryBuilder('parent')
+          .where(`'${item.student.usid}' = ANY(parent.students)`)
+          .getOne();
+        
+        if (parent) {
+          phoneNumber = parent.phoneNumber;
+        } else {
+          this.logger.warn(`Parent not found for student USID: ${item.student.usid}`);
+          return;
+        }
+      } else {
+        return;
+      }
+      
+      // Create SMS text with explicit newlines that will work with SMS gateways
+      const messageLines = [
+        "Dear Parent,",
+        "",
+        isSuccess ? "Your order has been placed successfully!" : "Your order was unsuccessful/cancelled.",
+        "",
+        `Student Name: ${item.student?.studentName}`,
+        `USID: ${item.student?.usid}`,
+        `Company: Thathva Industries`,
+        "",
+        isSuccess ? `Thank you for the purchase. Your product will be delivered soon.` : `Please check your payment details or try again.`,
+        "",
+        "Regards,",
+        "Team Thathva"
+      ];
+      
+      // Join with %0A which is the URL-encoded newline character
+      const smsText = messageLines.join("%0A");
+      
+      const smsUrl = `http://sms.teleosms.com/api/mt/SendSMS?APIKey=${process.env.SMS_API_KEY}&senderid=THATVA&channel=Trans&DCS=0&flashsms=0&number=91${phoneNumber}&text=${smsText}&route=2`;
       
       await this.http.axiosRef.get(smsUrl).then((res)=>{
         console.log(smsUrl,res.data,'res***');

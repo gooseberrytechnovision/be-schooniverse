@@ -221,7 +221,46 @@ export class StudentsService {
 
   async remove(id: number): Promise<void> {
     const student = await this.findOne(id);
-    await this.studentRepository.remove(student);
+    
+    if (!student || !student.usid) {
+      throw new NotFoundException(`Student with ID ${id} not found`);
+    }
+    
+    // Start a transaction to ensure data consistency
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    
+    try {
+      // Find all parents that have this student in their students array
+      const parents = await queryRunner.manager
+        .createQueryBuilder(Parent, 'parent')
+        .where(`'${student.usid}' = ANY(parent.students)`)
+        .getMany();
+      
+      // Remove the student USID from each parent's students array
+      for (const parent of parents) {
+        // Filter out the current student's USID from the array
+        parent.students = parent.students.filter(usid => usid !== student.usid);
+        
+        // Save the updated parent
+        await queryRunner.manager.save(Parent, parent);
+      }
+      
+      // Remove the student
+      await queryRunner.manager.remove(Student, student);
+      
+      // Commit the transaction
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      // Rollback in case of errors
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        `Error while removing student: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto) {

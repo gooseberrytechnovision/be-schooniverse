@@ -24,6 +24,15 @@ export class PaymentController {
     return await this.svc.getConfig(orderId);
   }
 
+  @Get(':orderId')
+  @Roles('parent', 'admin')
+  @ApiOperation({ summary: 'Get payment details by order ID' })
+  @ApiResponse({ status: 200, description: 'Payment details retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Payment not found' })
+  async getPaymentByOrderId(@Param('orderId') orderId: string) {
+    return await this.svc.getPaymentByOrderId(orderId);
+  }
+
   @Post('success')
   @Roles('admin')
   @ApiOperation({ summary: 'Handle successful payment' })

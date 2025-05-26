@@ -48,10 +48,10 @@ export class AuthService {
       parent.isOtpVerified = false;
       await this.parentRepository.save(parent);
 
-      let otpText = `Dear Parent, ${otp} is the One Time Password to access The Gaudium Parent App. Do not share this OTP with anyone for security reasons. Regards, Team Gaudium`;
-
+      let otpText = `Dear Parent, ${otp} is the One Time Password to access The Thathva Uniforms Portal. Do not share this OTP with anyone for security reasons. Regards, Team Thathva`;
+      
       // Send OTP via SMS using parent's phone number
-      const smsUrl = `http://sms.teleosms.com/api/mt/SendSMS?APIKey=${process.env.SMS_API_KEY}&senderid=GDMSCH&channel=Trans&DCS=0&flashsms=0&number=91${parent.phoneNumber}&text=${otpText}&route=2`;
+      const smsUrl = `http://sms.teleosms.com/api/mt/SendSMS?APIKey=${process.env.SMS_API_KEY}&senderid=THATVA&channel=Trans&DCS=0&flashsms=0&number=91${parent.phoneNumber}&text=${otpText}&route=2`;
       
       await this.httpService.axiosRef.get(smsUrl).then((res)=>{
         console.log(res.data,'res***');
