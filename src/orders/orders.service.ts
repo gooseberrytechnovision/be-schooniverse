@@ -36,15 +36,6 @@ export class OrdersService {
     shippingMethod: string,
     paymentMethod: PaymentMethod,
   ): Promise<Order> {
-    // 1️⃣ Look for an existing *pending* order
-    const existing = await this.orderRepository.findOne({
-      where: { parentId, transactionStatus: TransactionStatus.FAILED },
-      relations: ['items', 'items.bundle', 'payments'],
-    });
-    if (existing) {
-      return existing; // reuse the pending order
-    }
-
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
