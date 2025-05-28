@@ -194,6 +194,7 @@ export class PaymentService {
 
       pay.status = PaymentStatus.FAILED;
       pay.raw = evt;
+      pay.applicationCode = evt.application_code || null;
       await qr.manager.save(pay);
 
       pay.order.transactionStatus = TransactionStatus.FAILED;
