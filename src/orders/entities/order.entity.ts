@@ -46,6 +46,15 @@ export class Order {
   @Column({ name: 'tracking_id' })
   trackingId: string;
 
+  @Column({ name: 'is_address_edited', default: false })
+  isAddressEdited: boolean;
+
+  @Column({ name: 'delivery_address', nullable: true })
+  deliveryAddress: string;
+
+  @Column({ name: 'shipping_method', nullable: true })
+  shippingMethod: string;
+
   @OneToMany(() => OrderItem, orderItem => orderItem.order)
   items: OrderItem[];
 

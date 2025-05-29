@@ -35,6 +35,8 @@ export class OrdersService {
     parentId: number,
     shippingMethod: string,
     paymentMethod: PaymentMethod,
+    isAddressEdited: boolean,
+    deliveryAddress: string,
   ): Promise<Order> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -69,6 +71,9 @@ export class OrdersService {
       const order = queryRunner.manager.create(Order, {
         parentId,
         totalPrice,
+        isAddressEdited,
+        deliveryAddress,
+        shippingMethod,
         status: OrderStatus.IN_PROGRESS,
         transactionStatus: TransactionStatus.FAILED,
       });

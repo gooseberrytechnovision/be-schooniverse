@@ -157,6 +157,7 @@ export class PaymentService {
       pay.externalReference = evt.bank_reference_id;
       pay.raw = evt;
       pay.applicationCode = evt.application_code;
+      pay.method = evt.payment_group || null;
       await qr.manager.save(pay);
 
       pay.order.transactionStatus = TransactionStatus.PAID;
@@ -195,6 +196,7 @@ export class PaymentService {
       pay.status = PaymentStatus.FAILED;
       pay.raw = evt;
       pay.applicationCode = evt.application_code || null;
+      pay.method = evt.payment_group || null;
       await qr.manager.save(pay);
 
       pay.order.transactionStatus = TransactionStatus.FAILED;

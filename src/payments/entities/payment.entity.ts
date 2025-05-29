@@ -27,7 +27,7 @@ export class Payment {
   orderId: number;
 
   @Column({ type: 'enum', enum: PaymentMethod, name: 'payment_method' , nullable: true, default: PaymentMethod.DIRECT })
-  method: PaymentMethod;
+  method: string;
 
   @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.FAILED, name: 'payment_status' })
   status: PaymentStatus;

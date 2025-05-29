@@ -28,4 +28,9 @@ export class PaymentEventDto {
   @ApiPropertyOptional({ description: 'Cart items' })
   @IsOptional()
   cartItems?: any[];
+
+  @ApiPropertyOptional({ description: 'Payment group' })
+  @IsOptional()
+  @IsString()
+  payment_group?: string;
 } 

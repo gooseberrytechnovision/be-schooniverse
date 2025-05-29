@@ -26,6 +26,8 @@ class PlaceOrderDto {
   parentId: number;
   shippingMethod: string;
   paymentMethod: PaymentMethod;
+  isAddressEdited: boolean;
+  deliveryAddress: string;
 }
 
 @ApiTags('orders')
@@ -53,6 +55,8 @@ export class OrdersController {
       placeOrderDto.parentId,
       placeOrderDto.shippingMethod,
       placeOrderDto.paymentMethod,
+      placeOrderDto.isAddressEdited,
+      placeOrderDto.deliveryAddress,
     );
   }
 
