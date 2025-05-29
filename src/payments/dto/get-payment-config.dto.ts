@@ -15,7 +15,7 @@ export class GetPaymentConfigDto {
   student_id: string;
 
   @ApiProperty({ description: 'Application code' })
-  application_code: string;
+  reference_id: string;
 
   @ApiProperty({ description: 'Fee headers' })
   fee_headers: {

@@ -58,7 +58,7 @@ export class PaymentService {
         api_key: process.env.GQ_API_KEY,
       },
       student_id: orderItems.student.usid,
-      application_code: orderId,
+      reference_id: orderId,
       student_details: {
         student_first_name: orderItems.student.studentName,
       },

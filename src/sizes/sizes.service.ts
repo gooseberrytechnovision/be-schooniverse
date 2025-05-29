@@ -60,9 +60,9 @@ export class SizesService {
     await this.sizeRepository.remove(size);
   }
   
-  async findSizesInBulk(sizesRequest: { [studentId: string]: number[] }): Promise<{ [studentId: string]: { [productId: string]: string } }> {
+  async findSizesInBulk(sizesRequest: { [studentId: string]: number[] }): Promise<{ [studentId: string]: { [productId: string]: any } }> {
     // Create a map to store results
-    const result: { [studentId: string]: { [productId: string]: string } } = {};
+    const result: { [studentId: string]: { [productId: string]: any } } = {};
     
     // Get all student IDs
     const studentIds = Object.keys(sizesRequest).map(id => parseInt(id));
@@ -103,7 +103,7 @@ export class SizesService {
       if (!result[size.studentId]) {
         result[size.studentId] = {};
       }
-      result[size.studentId][size.productId] = size.size;
+      result[size.studentId][size.productId] = { ...size};
     }
     
     return result;

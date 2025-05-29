@@ -36,7 +36,7 @@ export class SizesController {
   @Post('bulk')
   findSizesInBulk(
     @Body() sizesRequest: { [studentId: string]: number[] }
-  ): Promise<{ [studentId: string]: { [productId: string]: string } }> {
+  ): Promise<{ [studentId: string]: { [productId: string]: any } }> {
     return this.sizesService.findSizesInBulk(sizesRequest);
   }
 } 
