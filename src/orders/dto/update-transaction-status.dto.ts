@@ -7,4 +7,7 @@ export class UpdateTransactionStatusDto {
   @IsEnum(TransactionStatus)
   @IsNotEmpty()
   status: TransactionStatus;
+
+  @ApiProperty({ description: 'Application code of the transaction' })
+  application_code: string;
 } 

@@ -189,20 +189,32 @@ export class OrdersService {
       relations: ['items', 'items.bundle', 'items.student'],
     });
 
+    const payment = await this.paymentRepository.findOne({
+      where: { orderId: parseInt(id) },
+      order: { createdAt: 'DESC' },
+    });
+
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
     }
 
+    if (!payment) {
+      throw new NotFoundException(`Payment with order ID ${id} not found`);
+    }
+
     // Update order status
     order.transactionStatus = updateTransactionStatusDto.status;
+    payment.status = updateTransactionStatusDto.status as any;
+    payment.applicationCode = updateTransactionStatusDto.application_code;
 
     // Save the updated order
     const updatedOrder = await this.orderRepository.save(order);
-
+    const updatedPayment = await this.paymentRepository.save(payment);
     return {
       success: true,
       message: 'Transaction status updated successfully',
       order: updatedOrder,
+      payment: updatedPayment,
     };
   }
 }
