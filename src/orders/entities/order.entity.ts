@@ -14,6 +14,12 @@ export enum TransactionStatus {
   FAILED = 'FAILED'
 }
 
+export enum SettlementStatus {
+  SETTLED = 'SETTLED',
+  PENDING = 'PENDING',
+  FAILED = 'FAILED'
+}
+
 @Entity('orders')
 export class Order {
   @PrimaryGeneratedColumn('uuid')
@@ -42,6 +48,13 @@ export class Order {
     default: TransactionStatus.FAILED
   })
   transactionStatus: TransactionStatus;
+
+  @Column({
+    type: 'enum',
+    enum: SettlementStatus,
+    default: SettlementStatus.PENDING
+  })
+  settlement_status: SettlementStatus;
 
   @Column({ name: 'tracking_id' })
   trackingId: string;

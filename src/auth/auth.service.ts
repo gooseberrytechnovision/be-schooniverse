@@ -182,7 +182,9 @@ export class AuthService {
         exists: true,
         name: parent.parentName,
         student: student,
-        access_token: token
+        access_token: token,
+        isFirstTimeLogin: loginDto.password === 'Th@thvaUni#2025' ? true : false,
+        parentId: parent.id
       };
 
     } catch (error) {

@@ -93,6 +93,7 @@ export class ParentsService {
     // Add student data to parent object
     return {
       ...parent,
+      password: null,
       studentData,
     };
   }

@@ -204,6 +204,7 @@ export class OrdersService {
 
     // Update order status
     order.transactionStatus = updateTransactionStatusDto.status;
+    order.settlement_status = updateTransactionStatusDto.settlement_status;
     payment.status = updateTransactionStatusDto.status as any;
     payment.applicationCode = updateTransactionStatusDto.application_code;
 
