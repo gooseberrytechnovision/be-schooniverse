@@ -22,6 +22,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { PaymentMethod } from '../payments/entities/payment.entity';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateTransactionStatusDto } from './dto/update-transaction-status.dto';
+import { BulkUpdateTransactionStatusDto } from './dto/bulk-update-transaction-status.dto';
 class PlaceOrderDto {
   parentId: number;
   shippingMethod: string;
@@ -115,5 +116,18 @@ export class OrdersController {
     @Body() updateTransactionStatusDto: UpdateTransactionStatusDto,
   ) {
     return this.ordersService.updateTransactionStatus(id, updateTransactionStatusDto);
+  }
+
+  @Post('bulk-transaction-status')
+  @ApiOperation({ summary: 'Bulk update transaction statuses' })
+  @ApiResponse({
+    status: 200,
+    description: 'Transaction statuses updated successfully',
+  })
+  @ApiResponse({ status: 404, description: 'One or more orders not found' })
+  bulkUpdateTransactionStatus(
+    @Body() bulkUpdateDto: BulkUpdateTransactionStatusDto,
+  ) {
+    return this.ordersService.bulkUpdateTransactionStatus(bulkUpdateDto);
   }
 }

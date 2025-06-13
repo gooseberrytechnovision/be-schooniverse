@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { Order, OrderStatus, TransactionStatus } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import {
@@ -12,6 +12,7 @@ import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateTransactionStatusDto } from './dto/update-transaction-status.dto';
+import { BulkUpdateTransactionStatusDto } from './dto/bulk-update-transaction-status.dto';
 @Injectable()
 export class OrdersService {
   constructor(
@@ -217,5 +218,109 @@ export class OrdersService {
       order: updatedOrder,
       payment: updatedPayment,
     };
+  }
+
+  async bulkUpdateTransactionStatus(bulkUpdateDto: BulkUpdateTransactionStatusDto) {
+    const results = {
+      success: true,
+      message: 'Bulk update completed',
+      successCount: 0,
+      failedCount: 0,
+      details: []
+    };
+
+    // Extract all order IDs for efficient querying
+    const orderIds = bulkUpdateDto.transactions.map(t => t.orderId);
+    
+    try {
+      // Get all orders in one query
+      const orders = await this.orderRepository.find({
+        where: { id: In(orderIds) }
+      });
+      
+      // Get all payments in one query
+      const payments = await this.paymentRepository.find({
+        where: { orderId: In(orderIds) }
+      });
+      
+      const orderMap = new Map();
+      orders.forEach(order => {
+        orderMap.set(order.id, order);
+      });
+      
+      const paymentMap = new Map();
+      payments.forEach(payment => {
+        paymentMap.set(payment.orderId, payment);
+      });
+      
+      // Prepare batch updates
+      const ordersToUpdate = [];
+      const paymentsToUpdate = [];
+      
+      // Process each transaction
+      for (const transaction of bulkUpdateDto.transactions) {
+        const orderId = Number(transaction.orderId);
+        
+        const order = orderMap.get(orderId);
+        const payment = paymentMap.get(orderId);
+
+        if (!order || !payment) {
+          results.failedCount++;
+          results.details.push({
+            orderId: transaction.orderId,
+            success: false,
+            message: !order
+              ? `Order with ID ${transaction.orderId} not found`
+              : `Payment with order ID ${transaction.orderId} not found`,
+          });
+          continue;
+        }
+
+        // Update order status
+        if (transaction?.status !== undefined) {
+          order.transactionStatus = transaction.status;
+          payment.status = transaction.status as any;
+        }
+        if (transaction?.settlement_status !== undefined) {
+          order.settlement_status = transaction.settlement_status;
+        }
+        if (transaction?.application_code !== undefined) {
+          payment.applicationCode = transaction.application_code;
+        }
+
+        // Add to batch update arrays
+        ordersToUpdate.push(order);
+        paymentsToUpdate.push(payment);
+
+        results.successCount++;
+        results.details.push({
+          orderId: transaction.orderId,
+          success: true,
+          message: "Transaction status updated successfully",
+        });
+      }
+      
+      // Execute batch updates if there are items to update
+      if (ordersToUpdate.length > 0) {
+        await this.orderRepository.save(ordersToUpdate);
+      }
+      
+      if (paymentsToUpdate.length > 0) {
+        await this.paymentRepository.save(paymentsToUpdate);
+      }
+    } catch (error) {
+      results.success = false;
+      results.message = `Bulk update failed: ${error.message}`;
+    }
+    
+    // If all transactions failed, change the overall success status
+    if (results.failedCount === bulkUpdateDto.transactions.length) {
+      results.success = false;
+      results.message = 'All transaction updates failed';
+    } else if (results.failedCount > 0) {
+      results.message = `Completed with ${results.successCount} successful and ${results.failedCount} failed updates`;
+    }
+    
+    return results;
   }
 }
