@@ -256,7 +256,7 @@ export class BundlesService {
   }
 
   // Update the searchBundles method to use the new transform method
-  async searchBundles(usid: string, type: string): Promise<BundleResponseDto> {
+  async searchBundles(usid: string, type: string, isIndividualProduct: boolean): Promise<BundleResponseDto> {
     let studentType: string = type;
     if (!this.validStudentTypes.includes(studentType)) {
       throw new BadRequestException(
@@ -314,6 +314,7 @@ export class BundlesService {
       .where('b.gender = :gender', { gender: mappedGender })
       .andWhere('b.studentType = :studentType', { studentType })
       .andWhere('b.applicableClasses ~* :classPattern', { classPattern })
+      .andWhere('b.isIndividualProduct = :isIndividualProduct', { isIndividualProduct })
       .getRawMany();
 
     if (!bundles.length) {

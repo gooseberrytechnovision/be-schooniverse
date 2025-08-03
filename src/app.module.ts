@@ -19,6 +19,7 @@ import { AdminModule } from './admin/admin.module';
 import { UploadModule } from './upload/upload.module';
 import { PaymentModule } from './payments/payment.module';
 import { SizesModule } from './sizes/sizes.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SizesModule } from './sizes/sizes.module';
     UploadModule,
     PaymentModule,
     SizesModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

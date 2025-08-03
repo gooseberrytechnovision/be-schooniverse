@@ -5,10 +5,11 @@ import { ParentsController } from './parents.controller';
 import { Parent } from './entities/parent.entity';
 import { Student } from '../students/entities/student.entity';
 import { AuthMiddleware } from '../middleware/auth.middleware';
-
+import { SettingsModule } from '../settings/settings.module';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Parent, Student])
+    TypeOrmModule.forFeature([Parent, Student]),
+    SettingsModule,
   ],
   controllers: [ParentsController],
   providers: [ParentsService],

@@ -23,6 +23,7 @@ import { PaymentMethod } from '../payments/entities/payment.entity';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateTransactionStatusDto } from './dto/update-transaction-status.dto';
 import { BulkUpdateTransactionStatusDto } from './dto/bulk-update-transaction-status.dto';
+import { BulkUpdateOrderStatusDto } from './dto/bulk-update-order-status.dto';
 class PlaceOrderDto {
   parentId: number;
   shippingMethod: string;
@@ -129,5 +130,18 @@ export class OrdersController {
     @Body() bulkUpdateDto: BulkUpdateTransactionStatusDto,
   ) {
     return this.ordersService.bulkUpdateTransactionStatus(bulkUpdateDto);
+  }
+    
+  @Post('bulk-delivery-status')
+  @ApiOperation({ summary: 'Bulk update order statuses' })
+  @ApiResponse({
+    status: 200,
+    description: 'Order statuses updated successfully',
+  })
+  @ApiResponse({ status: 404, description: 'One or more orders not found' })
+  bulkUpdateStatus(
+    @Body() bulkUpdateDto: BulkUpdateOrderStatusDto,
+  ) {
+    return this.ordersService.bulkUpdateStatus(bulkUpdateDto);
   }
 }

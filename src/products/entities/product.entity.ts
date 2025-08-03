@@ -18,6 +18,9 @@ export class Product {
   @Column({ type: 'decimal', precision: 10, scale: 2 ,name: 'unit_price'})
   price: number;
 
+  @Column({ type: 'varchar', array: true, nullable: true, name: 'available_sizes' })
+  availableSizes: string[];
+
   @OneToMany(() => Size, (size) => size.product)
   sizes: Size[];
 

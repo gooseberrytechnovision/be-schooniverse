@@ -42,6 +42,9 @@ export class Bundle {
   @IsNumber()
   @IsNotEmpty()
   totalPrice: number;
+  
+  @Column({ type: 'boolean', name: 'is_individual_product', default: false})
+  isIndividualProduct: boolean;
 
   @Column({ name: 'image', length: 255 })
   @IsString()

@@ -11,6 +11,7 @@ import { Parent } from './entities/parent.entity';
 import { Student } from '../students/entities/student.entity';
 import { CreateParentDto } from './dto/create-parent.dto';
 import * as bcrypt from 'bcrypt';
+import { SettingsService } from '../settings/settings.service';
 
 @Injectable()
 export class ParentsService {
@@ -19,6 +20,7 @@ export class ParentsService {
     private readonly parentRepository: Repository<Parent>,
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
+    private readonly settingsService: SettingsService,
   ) {}
 
   async create(createParentDto: CreateParentDto): Promise<Parent> {
@@ -74,6 +76,8 @@ export class ParentsService {
       .where(`'${studentUsid}' = ANY(parent.students)`)
       .getOne();
 
+    const settings = await this.settingsService.getSettings();
+
     if (!parent) {
       throw new NotFoundException(
         `Parent with student USID ${studentUsid} not found`,
@@ -95,6 +99,7 @@ export class ParentsService {
       ...parent,
       password: null,
       studentData,
+      settings: settings.settings,
     };
   }
 

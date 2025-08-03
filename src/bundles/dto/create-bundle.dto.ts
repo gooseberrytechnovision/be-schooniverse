@@ -48,6 +48,9 @@ export class CreateBundleDto {
   @IsNotEmpty()
   totalPrice: number;
 
+  @ApiProperty({ description: 'Whether this bundle is an individual product' })
+  isIndividualProduct: boolean;
+
   @ApiProperty({ description: 'Products in the bundle', type: [BundleProductDto] })
   @IsArray()
   @ArrayMinSize(1)

@@ -65,8 +65,9 @@ export class BundlesController {
   async searchBundles(
     @Param('usid') usid: string,
     @Query('type') type: string = 'New',
+    @Query('isIndividualProduct') isIndividualProduct: boolean = false,
   ): Promise<BundleResponseDto> {
-    return await this.bundlesService.searchBundles(usid, type);
+    return await this.bundlesService.searchBundles(usid, type, isIndividualProduct);
   }
 
   @Get('student/:usid')

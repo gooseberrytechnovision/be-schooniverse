@@ -4,4 +4,5 @@ export class UpdateProductDto {
   price?: number;
   quantity?: number;
   isActive?: boolean;
+  availableSizes?: string[];
 } 

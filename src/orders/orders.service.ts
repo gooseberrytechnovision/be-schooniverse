@@ -13,6 +13,8 @@ import { CartItem } from '../cart/entities/cart-item.entity';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateTransactionStatusDto } from './dto/update-transaction-status.dto';
 import { BulkUpdateTransactionStatusDto } from './dto/bulk-update-transaction-status.dto';
+import { BulkUpdateOrderStatusDto } from './dto/bulk-update-order-status.dto';
+import { SettingsService } from 'src/settings/settings.service';
 @Injectable()
 export class OrdersService {
   constructor(
@@ -27,6 +29,7 @@ export class OrdersService {
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
     private readonly dataSource: DataSource,
+    private readonly settingsService: SettingsService,
   ) {}
 
   SHIPPING_HOME: string = 'home';
@@ -39,6 +42,13 @@ export class OrdersService {
     isAddressEdited: boolean,
     deliveryAddress: string,
   ): Promise<Order> {
+    const settings = await this.settingsService.getSettings();
+    if (!settings.settings.enablePurchasing) {
+      return {
+        success: false,
+        message: 'Purchasing is currently disabled',
+      } as any
+    }
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -184,6 +194,79 @@ export class OrdersService {
     };
   }
 
+  async bulkUpdateStatus(bulkUpdateDto: BulkUpdateOrderStatusDto) {
+    const results = {
+      success: true,
+      message: 'Bulk order status update completed',
+      successCount: 0,
+      failedCount: 0,
+      details: []
+    };
+
+    const orderIds = bulkUpdateDto.transactions.map(o => o.orderId);
+    
+    try {
+      const orders = await this.orderRepository.find({
+        where: { id: In(orderIds) }
+      });
+      
+      const orderMap = new Map();
+      orders.forEach(order => {
+        orderMap.set(order.id, order);
+      });
+      
+      const ordersToUpdate = [];
+      
+      for (const orderUpdate of bulkUpdateDto.transactions) {
+        const orderId = Number(orderUpdate.orderId);
+        const order = orderMap.get(orderId);
+
+        if (!order) {
+          results.failedCount++;
+          results.details.push({
+            orderId: orderUpdate.orderId,
+            success: false,
+            message: `Order with ID ${orderUpdate.orderId} not found`
+          });
+          continue;
+        }
+
+        if (orderUpdate?.status !== undefined) {
+          order.status = orderUpdate.status;
+        }
+        if (orderUpdate?.trackingId !== undefined) {
+          order.trackingId = orderUpdate.trackingId;
+        }
+
+        ordersToUpdate.push(order);
+
+        results.successCount++;
+        results.details.push({
+          orderId: orderUpdate.orderId,
+          success: true,
+          message: "Order status updated successfully"
+        });
+      }
+      
+      if (ordersToUpdate.length > 0) {
+        await this.orderRepository.save(ordersToUpdate);
+      }
+    } catch (error) {
+      results.success = false;
+      results.message = `Bulk update failed: ${error.message}`;
+    }
+    
+    // Update overall results message
+    if (results.failedCount === bulkUpdateDto.transactions.length) {
+      results.success = false;
+      results.message = 'All order status updates failed';
+    } else if (results.failedCount > 0) {
+      results.message = `Completed with ${results.successCount} successful and ${results.failedCount} failed updates`;
+    }
+    
+    return results;
+  }
+
   async updateTransactionStatus(id: string, updateTransactionStatusDto: UpdateTransactionStatusDto) {
     const order = await this.orderRepository.findOne({
       where: { id },
@@ -229,7 +312,6 @@ export class OrdersService {
       details: []
     };
 
-    // Extract all order IDs for efficient querying
     const orderIds = bulkUpdateDto.transactions.map(t => t.orderId);
     
     try {

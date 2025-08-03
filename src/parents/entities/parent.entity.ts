@@ -60,4 +60,6 @@ export class Parent {
   // updatedAt: Date;
 
   studentData?: Student[];
+
+  settings?: any;
 }

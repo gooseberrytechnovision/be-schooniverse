@@ -9,10 +9,12 @@ import { Bundle } from '../bundles/entities/bundle.entity';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { Parent } from '../parents/entities/parent.entity';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, Payment, Bundle, Cart, CartItem, Parent])
+    TypeOrmModule.forFeature([Order, OrderItem, Payment, Bundle, Cart, CartItem, Parent]),
+    SettingsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
