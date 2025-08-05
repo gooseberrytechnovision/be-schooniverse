@@ -107,6 +107,7 @@ export class BundlesService {
         gender: createBundleDto.gender,
         studentType: createBundleDto.studentType,
         applicableClasses: createBundleDto.applicableClasses,
+        isIndividualProduct: createBundleDto.isIndividualProduct,
         totalPrice: createBundleDto.totalPrice,
         image: createBundleDto.imageUrl,
       });
@@ -151,6 +152,7 @@ export class BundlesService {
       if (updateBundleDto.gender) bundle.gender = updateBundleDto.gender;
       if (updateBundleDto.studentType) bundle.studentType = updateBundleDto.studentType;
       if (updateBundleDto.applicableClasses) bundle.applicableClasses = updateBundleDto.applicableClasses;
+      if (updateBundleDto.isIndividualProduct) bundle.isIndividualProduct = updateBundleDto.isIndividualProduct;
       if (updateBundleDto.totalPrice) bundle.totalPrice = updateBundleDto.totalPrice;
       if (updateBundleDto.imageUrl) bundle.image = updateBundleDto.imageUrl;
 
