@@ -166,7 +166,6 @@ export class StudentsService {
       const student = await this.studentRepository.findOne({
         where: { usid },
       });
-      console.log('Result:', student);
 
       if (!student) {
         throw new NotFoundException(`Student with USID ${usid} not found`);

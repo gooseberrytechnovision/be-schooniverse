@@ -346,8 +346,16 @@ export class BundlesService {
       ...item,
       product_size: sizeMap[item.product_id] || null
     }));
-
-    return this.transformToResponseDtoWithPurchaseCheck(bundlesWithSizes, student.id);
+    let result;
+    if (isIndividualProduct.toString() === 'true'){
+      result = [];
+      await Promise.all(bundlesWithSizes.map(async item => {
+        result.push(await this.transformToResponseDtoWithPurchaseCheck([item], student.id));
+      }));
+    }else{
+      result = await this.transformToResponseDtoWithPurchaseCheck(bundlesWithSizes, student.id);
+    }
+    return result;
   }
 
   async getBundlesByStudentDetails(usid: string): Promise<BundleResponseDto> {

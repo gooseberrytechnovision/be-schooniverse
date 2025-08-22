@@ -123,7 +123,6 @@ export class CartService {
         where: { parentId },
         relations: ['items'],
       });
-      console.log(cart.items, 'cart');
       if (!cart) {
         throw new NotFoundException(`Cart not found for parent ${parentId}`);
       }

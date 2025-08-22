@@ -174,7 +174,7 @@ export class AuthService {
       };
 
       const token = this.jwtService.sign(payload, { secret: process.env.JWT_SECRET });
-      console.log(token,'***');
+
       // Return success with parent data and specific student data
       return {
         success: true,

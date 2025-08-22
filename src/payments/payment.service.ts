@@ -246,7 +246,6 @@ export class PaymentService {
 
   async sendSms(cartItems, isSuccess: boolean) {
     cartItems?.forEach(async (item) => {
-      console.log(item,'item****');
       let phoneNumber;
       
       if (item.student?.usid) {
