@@ -253,6 +253,7 @@ export class BundlesService {
         optional: item.optional,
         size: item.product_size,
         size_chart: item.size_chart,
+        availableSizes: item?.available_sizes || [],
       })),
     };
   }
@@ -307,6 +308,7 @@ export class BundlesService {
         'p.name as product_name',
         'p.unitPrice as unit_price',
         'p.size_chart as size_chart',
+        'p.available_sizes as available_sizes',
         'bp.quantity as quantity',
         'bp.optional as optional',
         'b.totalPrice as bundle_total',
